@@ -7,7 +7,7 @@ Base = declarative_base()
 DATABASE_URI = 'sqlite:///data/fgo.db'
 
 engine = create_engine(DATABASE_URI)
-mysql_session = sessionmaker(bind=engine)
+sqlite_session = sessionmaker(bind=engine)
 
 
 class Loopers(Base):
@@ -18,6 +18,7 @@ class Loopers(Base):
     name = Column(String(255), nullable=False,comment='从者中文名')
     rarity = Column(Integer, nullable=False, comment='星级')
     class_name = Column(String(255), nullable=False, comment='职介')
+    atk = Column(Integer, nullable=False, comment='最大攻击力')
     tendancy = Column(Integer, nullable=False, comment='攻防总倾向')
     np_rate = Column(Float, nullable=False, comment='NP获取率')
     np_hits = Column(String(255), nullable=False, comment='NP命中数') 
@@ -38,6 +39,7 @@ class Supports(Base):
     rarity = Column(Integer, nullable=False, comment='星级')
     
     
+
 class ServantBuffs(Base):
     
     __tablename__ ='servant_buffs'
@@ -47,8 +49,9 @@ class ServantBuffs(Base):
     servant_name = Column(String(255), nullable=False, comment='从者中文名')
     skill_type = Column(String(255), nullable=True, comment='技能类型')
     skill_no = Column(Integer, nullable=False, comment='技能序号')
-    buff_name = Column(String(255), nullable=False, comment='buff名称')
-    buff_type = Column(String(255), nullable=False, comment='buff类型')
+    buff_name = Column(String(255), nullable=True, comment='buff名称')
+    buff_type = Column(String(255), nullable=True, comment='buff类型')
+    function_target_type = Column(String(255), nullable=True, comment='效果对目标的影响')  # 可能为None，表示对所有
     function_type = Column(String(255), nullable=True, comment='效果类型') 
     function_target_traits = Column(String(255), nullable=True, comment='效果对特性的影响')
     value = Column(Integer, nullable=True, comment='buff值')
@@ -56,4 +59,3 @@ class ServantBuffs(Base):
     turn = Column(Integer, nullable=True, comment='buff持续回合数')
     rate = Column(Integer, nullable=True, comment='buff命中率')
     userate = Column(Integer, nullable=True, comment='buff生效几率') 
-    
