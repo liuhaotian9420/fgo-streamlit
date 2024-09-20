@@ -1,151 +1,178 @@
 import streamlit as st
 import pandas as pd
-from src.data_loader import fetch_data,process_servant_buffs_data,process_servant_data
+import numpy as np
+from collections import defaultdict
+from pprint import pprint
+from src.calculator import npGain,discardDigitsBeyond
+from src.data_loader import fetch_data,process_servant_buffs_data,process_servant_data,process_craft_essence_data
 from src.utils import reverse_mapping
-from components.refund import enemies
+from components.refund import enemies,servant_basic,supports,skills,craft_essence
+
+
+def sum_buff(buff_dict,buff_type,ban_one_turn=False,skills_activated=None):
+    
+    buff_lst = buff_dict.get(buff_type, [])  
+    
+    if not buff_lst:
+        return 0 
+    
+    divider = 100 if buff_type == 'charge' else 10
+    
+    if skills_activated:
+        buff_lst = [bf for bf in buff_lst if skills_activated[bf['skill_no']-1 ] and not (bf['skill_type']=='active' and bf['skill_no']==0)]
+    
+    if ban_one_turn:
+        return sum([bf['value'] for bf in buff_lst if bf['turn']>1])/divider
+    
+    return sum([bf['value'] for bf in buff_lst])/divider    
+
+def calc_increase(current,original):
+    if original == 0:
+        return '-'
+    else:
+        return str(round((current)/(original),3) * 100 - 100)+'%'
+
+def initialize_session_state():
+    
+    if 'default_gr' not in st.session_state:
+        st.session_state.default_gr = 0
+
+    if 'default_mb' not in st.session_state:
+        st.session_state.default_mb = 0
+
+    if 'default_regain' not in st.session_state:
+        st.session_state.default_regain = 0
+
+    if 'silver_fu' not in st.session_state:
+        st.session_state.silver_fu = True
+        
+    if 'golden_fu' not in st.session_state:
+        st.session_state.golden_fu = False
+        
+    if 'ce_atk' not in st.session_state:
+        st.session_state.ce_atk = 0
+        
+    if 'level' not in st.session_state:
+        st.session_state.level = 0
+
+def reset_added_buffs():
+    st.session_state['default_mb'] = 0
+    st.session_state['default_gr'] = 0
+    st.session_state['default_regain'] = 0
+
+def reset_basics(rarity):
+    
+    default_level = {1:60,2:65,3:70,4:80,5:90}
+
+    st.session_state['golden_fu'] = False
+    st.session_state['silver_fu'] = True
+    st.session_state['ce_atk'] = 0
+    st.session_state['np_level'] = 1 if svt_data['rarity']>=4 else 5    
+    st.session_state['level'] = default_level[rarity]
+
 
 st.set_page_config(page_title="FGO 模拟", page_icon='assets/images/favicon_fgo.png')
 st.title('蓝光炮回收计算🏄',)
 
 servants,name_id_mapping = process_servant_data(fetch_data('loopers'))
-id_name_mapping = reverse_mapping(name_id_mapping)
+meta_supports = fetch_data('supports')
+name_id_mapping.update({sp['name']:sp['id'] for sp in meta_supports})
 servant_buffs = process_servant_buffs_data(fetch_data('servant_buffs'))
+
+ce_data = fetch_data('craft_essence')
+ce_buffs = process_craft_essence_data(ce_data)
+name_id_mapping.update({ce['ce_name']:ce['ce_id'] for ce in ce_data})
+
+id_name_mapping = reverse_mapping(name_id_mapping)
 test_enemies = [1,1,1]
-hits_dist = [1,2,3,4]
-
-enemy_panels = enemies(test_enemies, hits_dist)
-
-# for panel,ok in enemy_panels:
-#     panel_data = panel 
-#     ok_data = ok
-        
 
 
 
-# svt_name = st.selectbox('选择从者',name_id_mapping.keys(),)
-
-# default_level = {1:60,2:65,3:70,4:80,5:90}
-# svt_data = data[name_id_mapping[svt_name]]
-# svt_buff = buff_info[name_id_mapping[svt_name]]
-# hits = svt_data['card_dist_acc'].split(',')
-
-# def1,support1,support2,support3 = st.columns([2,2,2,2],vertical_alignment='center')
-# default_all_skill = def1.toggle('全技能开启',value=True)
-# ban_one_turn = def1.toggle('禁止一回合buff',value=False)
-# change = def1.toggle('换人',value=False)
-
-# support_1 = support1.selectbox('拐1',options=['无']+list(supports_name_id_mapping.keys()),label_visibility='hidden',placeholder='1号拐',index=None)
-# support_2 = support2.selectbox('拐2',options=['无']+list(supports_name_id_mapping.keys()),label_visibility='hidden',placeholder='2号拐',index=None)
-# support_3 = support3.selectbox('拐3',options=['无']+list(supports_name_id_mapping.keys()),label_visibility='hidden',placeholder='3号拐',index=None,disabled=not change)
-
-# sp1_buff = support_buff_info[supports_name_id_mapping[support_1]] if support_1!='无' and support_1 is not None else {}
-# sp2_buff = support_buff_info[supports_name_id_mapping[support_2]] if support_2!='无' and support_2 is not None else {}
-# sp3_buff = support_buff_info[supports_name_id_mapping[support_3]] if support_3!='无' and support_3 is not None else {}
-
-# sp_mb = sum_buff(sp1_buff,'Arts Up',ban_one_turn=ban_one_turn) + sum_buff(sp2_buff,'Arts Up',ban_one_turn=ban_one_turn) + sum_buff(sp3_buff,'Arts Up',ban_one_turn=ban_one_turn)
-# sp_gr = sum_buff(sp1_buff,'NP Gain Up',ban_one_turn=ban_one_turn) + sum_buff(sp2_buff,'NP Gain Up',ban_one_turn=ban_one_turn) + sum_buff(sp3_buff,'NP Gain Up',ban_one_turn=ban_one_turn)
-# sp_charge = sum_buff(sp1_buff,'charge') + sum_buff(sp2_buff,'charge') + sum_buff(sp3_buff,'charge')
+svt_name = st.selectbox('选择从者',name_id_mapping.keys(),)
+svt_data = servants[svt_name]
+svt_buff = servant_buffs[name_id_mapping[svt_name]]
 
 
-# if 'np_level' not in st.session_state:
-#     st.session_state.np_level = 1 if svt_data['servant_rarity']>=4 else 5
-
-# with st.expander('基础数据') as expander:
-#     level,fufu = st.columns([2,1])
-#     if fufu.button('重置基础数据',use_container_width=True):
-#         reset_basics(svt_data['servant_rarity'])
-#     level.slider('等级', value=default_level[svt_data['servant_rarity']], min_value=90, max_value=120,step=1)
-#     level.slider('礼装最大白值',max_value=2400,step=100,key='ce_atk')
-#     np_level = fufu.number_input('宝具等级',key='np_level',min_value=1, max_value=5, step=1)
-#     sil,gol = fufu.columns([1,1],vertical_alignment='center')
-#     silver_fu = sil.checkbox('银芙芙',key='silver_fu')
-#     golden_fu = gol.checkbox('金芙芙',key='golden_fu')
+basics = servant_basic(svt_data['rarity'],reset_fn=reset_basics)
+support_lst = supports([sp['name'] for sp in meta_supports])
+ce = craft_essence([ce['ce_name'] for ce in ce_data])
+skill_settings = skills()
+ban_one_turn = skill_settings['ban_one_turn']
+hits = svt_data['np_hits'].split(',')    
 
 
-
-# with st.expander('从者 技能') as expander:
-#     skills,passives = st.columns([1,1],vertical_alignment='center')
-#     activate_skill_1 = skills.toggle('主动技能1',value=default_all_skill)
-#     activate_skill_2 = skills.toggle('主动技能2',value=default_all_skill)
-#     activate_skill_3 = skills.toggle('主动技能3',value=default_all_skill)
-#     passive_skill_2 = passives.toggle('被动 2',value=True)
-#     passive_skill_5 = passives.toggle('被动 5',value=False)
-#     tree = passives.toggle('天赋树',value=False)
-
-# with st.expander('额外 BUFF') as expander:
-#     # if st.button('reset'):
-#     #     reset()
-
-#     buffs,button = st.columns([3,2],vertical_alignment='center')
-#     # ce = button.selectbox('礼装',[],index=1)
-#     if button.button('重置自定义 Buff',use_container_width=True):
-#         reset_buffs()
-#     regain = button.number_input('缓冲',0,100,step=5,key='default_regain')
-#     golden_rule = buffs.slider('黄金律', 0,400,step=1,key='default_gr')
-#     arts_mana_burst = buffs.slider('蓝魔放',0,400,step=1,key='default_mb')
-
-
-# skills_activated = [activate_skill_1,activate_skill_2,activate_skill_3,]
-
-# current_mana_burst,current_golden_rule,current_np = st.columns([1,1,1],vertical_alignment='center')
-
-# # 主动技能默认
-# default_golden_rule = sum_buff(svt_buff,'NP Gain Up',ban_one_turn=ban_one_turn,skills_activated=skills_activated)
-# default_arts =(
-#             sum_buff(svt_buff,'Arts Up',ban_one_turn=ban_one_turn,skills_activated=skills_activated) 
-#             + sum_buff(svt_buff,'Arts Attack Resistance Down',ban_one_turn=ban_one_turn,skills_activated=skills_activated)
-# )
-# default_charges = sum_buff(svt_buff,'charge',skills_activated=skills_activated)
-
-
-# def calc_increase(current,original):
-#     if original == 0:
-#         return '-'
-#     else:
-#         return str(round((current-original)/(original),3) * 100 - 100)+'%'
-
-
-# cmb = current_mana_burst.metric('蓝魔放',value=default_arts+arts_mana_burst+sp_mb,
-#                                  delta=calc_increase(default_arts+arts_mana_burst+sp_mb,arts_mana_burst))
-# cgr = current_golden_rule.metric('黄金律',value=default_golden_rule+golden_rule+sp_gr,
-#                                  delta=calc_increase(default_golden_rule+golden_rule+sp_gr,golden_rule))
-# cnp = current_np.metric('NP',value=default_charges+sp_charge+(20 if passive_skill_2 else 0),
-#                         delta=0)
-
-# with st.expander('敌方数据') as expander:
-
-#     e1,e2,e3 = st.columns([1,1,1],vertical_alignment='center')
-
-#     enemy_mod_1 = e1.number_input('敌方补正1', value=1.0, min_value=0.1, max_value=1.5)
-#     ok_1 = e1.slider('敌方1过量hit数', min_value=1,max_value=len(hits),step=1,value=1)
-#     enemy_mod_2 = e2.number_input('敌方补正2', value=1.0, min_value=0.1, max_value=1.5)
-#     ok_2 = e2.slider('敌方2过量hit数', min_value=1,max_value=len(hits),step=1,value=1)
-#     enemy_mod_3 = e3.number_input('敌方补正3', value=1.0, min_value=0.1, max_value=1.5)
-#     ok_3 = e3.slider('敌方3过量hit数', min_value=1,max_value=len(hits),step=1,value=1)
-
-
-
-
-# # 伤害结算面板
-# total_np = 0
-# percentage = 0
-# for mod,overkill in zip([enemy_mod_1,enemy_mod_2,enemy_mod_3], [ok_1,ok_2,ok_3]):
-#     if overkill > len(hits):
-#         st.error('过量 hit数不能大于 hits')
-#         break
-#     overkills = [1 if len(hits)-idx<=overkill else 0 for idx,i in enumerate(hits) ]
-#     total_np+=npGain(3.0,a=default_arts+arts_mana_burst+sp_mb,
-#             np_gain_buff=default_golden_rule+golden_rule+sp_gr,
-#             np_rate = svt_data['servant_np_rate']/100,
-#             gainEffect=regain,
-#             overkill=overkills,
-#             mod=mod)  
-#     # 计算伤害占比
-#     percentage+=int(hits[0:np.where(np.array(overkills)==1)[0][0]+1][-1])
+with st.expander('额外 BUFF') as expander:
     
-# total_damage = 123456
-# refund = discardDigitsBeyond(total_np,2)
+    buffs,button = st.columns([3,2],vertical_alignment='center')
+    if button.button('重置自定义 Buff',use_container_width=True):
+        reset_added_buffs()
+    regain = button.number_input('缓冲',0,100,step=5,key='default_regain')
+    npGainUp = buffs.slider('黄金律', 0,400,step=1,key='default_gr')
+    commandUp = buffs.slider('蓝魔放',0,400,step=1,key='default_mb')
 
-# damage_board,refund_board = st.columns([1,1],vertical_alignment='center')
-# dmg = damage_board.metric('有效伤害占比', value=str(percentage)+'%',)
-# rfd = refund_board.metric('回收', value=refund,)
+enemy_panels = enemies(test_enemies, hits)
+
+# 计算所有的 buff 
+
+skills_activated = [skill_settings['activate_skill_1'],skill_settings['activate_skill_2'], skill_settings['activate_skill_3']]
+append_skill_2 = skill_settings['passive_skill_2']
+
+active_skill_buff = {
+    'npGainUp':sum_buff(svt_buff,'NP Gain Up',ban_one_turn=ban_one_turn,skills_activated=skills_activated),
+    'commandUp':(
+                sum_buff(svt_buff,'Arts Up',ban_one_turn=ban_one_turn,skills_activated=skills_activated) 
+                + sum_buff(svt_buff,'Arts Attack Resistance Down',ban_one_turn=ban_one_turn,skills_activated=skills_activated)
+                ),
+    'charge':sum_buff(svt_buff,'charge',skills_activated=skills_activated) + (20 if append_skill_2 else 0)
+    
+}
+support_buffs = defaultdict(float)
+for sup in support_lst:
+    if sup in name_id_mapping:
+        buff = servant_buffs[name_id_mapping[sup]]
+        support_buffs['npGainUp'] += sum_buff(buff,'NP Gain Up',ban_one_turn=ban_one_turn)
+        support_buffs['commandUp'] += sum_buff(buff,'Arts Up',ban_one_turn=ban_one_turn)
+        support_buffs['charge'] += sum_buff(buff,'charge',skills_activated=skills_activated)
+
+ce_buff = defaultdict(float)
+if ce['ce_name']:
+    ce_buff['npGainUp'] = sum_buff(ce_buffs[name_id_mapping[ce['ce_name']]],'NP Gain Up',ban_one_turn=ban_one_turn) if name_id_mapping[ce['ce_name']] else 0 
+    ce_buff['commandUp'] = sum_buff(ce_buffs[name_id_mapping[ce['ce_name']]],'Arts Up',ban_one_turn=ban_one_turn) if name_id_mapping[ce['ce_name']] else 0
+    ce_buff['charge'] = sum_buff(ce_buffs[name_id_mapping[ce['ce_name']]],'charge',) if name_id_mapping[ce['ce_name']]  else 0
+
+
+added_buffs = {'npGainUp':npGainUp,'commandUp':commandUp,}
+
+command_up,np_gain_up,current_np = st.columns([1,1,1],vertical_alignment='center')
+
+commandUpTotal = command_up.metric('蓝魔放',value=active_skill_buff['commandUp']+added_buffs['commandUp']+support_buffs['commandUp']+ce_buff['commandUp']
+                        , delta=calc_increase(active_skill_buff['commandUp']+added_buffs['commandUp']+support_buffs['commandUp']+ce_buff['commandUp'],active_skill_buff['commandUp'])
+                        )
+npGainUpTotal = np_gain_up.metric('黄金律',value=active_skill_buff['npGainUp']+added_buffs['npGainUp']+support_buffs['npGainUp']+ce_buff['npGainUp'],
+                                delta=calc_increase(active_skill_buff['npGainUp']+added_buffs['npGainUp']+support_buffs['npGainUp']+ce_buff['npGainUp'],active_skill_buff['npGainUp'])
+)
+chargeTotal = current_np.metric('充能',value=active_skill_buff['charge']+support_buffs['charge']+ce_buff['charge'])   
+
+
+
+# 伤害结算面板
+total_np = 0
+percentage = 0
+for idx,mod,overkill in enemy_panels:
+    if overkill > len(hits):
+        st.error('过量 hit数不能大于 hits')
+        break
+    overkills = [1 if len(hits)-idx<=overkill else 0 for idx,i in enumerate(hits) ]
+    total_np+=npGain(3.0,command_up=(active_skill_buff['commandUp']+added_buffs['commandUp']+support_buffs['commandUp']+ce_buff['commandUp'])/100,
+            np_gain_up=(active_skill_buff['npGainUp']+added_buffs['npGainUp']+support_buffs['npGainUp']+ce_buff['npGainUp'])/100,
+            np_rate = svt_data['np_rate']/100,
+            np_regain=regain,
+            overkill=overkills,
+            mod=mod)  
+    # 计算伤害占比
+    percentage+=int(hits[0:np.where(np.array(overkills)==1)[0][0]+1][-1])
+    
+refund = discardDigitsBeyond(total_np,2)
+damage_board,refund_board = st.columns([1,1],vertical_alignment='center')
+dmg = damage_board.metric('有效伤害占比', value=str(percentage)+'%',)
+rfd = refund_board.metric('回收', value=refund,)

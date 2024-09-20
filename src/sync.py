@@ -1,11 +1,28 @@
-from mysql import MySQLSession, ArtsLooper,ArtsLooperBuffs
-from model import Loopers, ServantBuffs, sqlite_session as SqliteSession
+from mysql import MySQLSession, ArtsLooper,ArtsLooperBuffs,ArtsMetaSupport,ArtsCraftEssence
+from model import Loopers, ServantBuffs, Supports,CraftEssence,sqlite_session as SqliteSession
 
 VIEW_MAPPING = {
-    ArtsLooper: Loopers,
-    ArtsLooperBuffs: ServantBuffs, 
+    # ArtsLooper: Loopers,
+    # ArtsLooperBuffs: ServantBuffs, 
+    # ArtsMetaSupport:ServantBuffs,
+    ArtsCraftEssence:CraftEssence
+    
     # Add more view models as needed
 }
+
+# 拐
+# session = SqliteSession()
+# session.add_all([Supports(name='阿尔托莉雅·卡斯特',id=504500),
+#                  Supports(name='吉尔伽美什',id=501800),
+#                  Supports(name='尼禄·克劳狄乌斯〔新娘〕',id=100600),
+#                  Supports(name='阿瓦隆女士',id=2800300),
+#                  Supports(name='徐福',id=1001400),
+#                  Supports(name='阿斯克勒庇俄斯',id=504300),
+#                  Supports(name='玉藻前',id=500300),
+#                  Supports(name='冯·霍恩海姆·帕拉塞尔苏斯',id=501000),
+#                  ])
+# session.commit()
+# session.close()
 
 def migrate_data(view_model, sqlite_model, mysql_session, sqlite_session)-> None:
     """Migrates data from a MySQL view to an SQLite table."""

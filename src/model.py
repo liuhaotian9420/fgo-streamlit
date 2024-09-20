@@ -36,7 +36,6 @@ class Supports(Base):
     
     id = Column(Integer, primary_key=True, comment='从者id')
     name = Column(String(255), nullable=False, comment='从者中文名')
-    rarity = Column(Integer, nullable=False, comment='星级')
     
     
 
@@ -44,18 +43,29 @@ class ServantBuffs(Base):
     
     __tablename__ ='servant_buffs'
     
-    record_id = Column(Integer, primary_key=True, comment='记录id',autoincrement=True)
-    servant_id = Column(Integer, nullable=False, comment='从者id')
+    servant_id = Column(Integer, nullable=False, comment='从者id',primary_key=True,)
     servant_name = Column(String(255), nullable=False, comment='从者中文名')
     skill_type = Column(String(255), nullable=True, comment='技能类型')
-    skill_no = Column(Integer, nullable=False, comment='技能序号')
-    buff_name = Column(String(255), nullable=True, comment='buff名称')
+    skill_no = Column(Integer, nullable=False, comment='技能序号',primary_key=True,)
+    buff_name = Column(String(255), nullable=True, comment='buff名称',primary_key=True,)
     buff_type = Column(String(255), nullable=True, comment='buff类型')
     function_target_type = Column(String(255), nullable=True, comment='效果对目标的影响')  # 可能为None，表示对所有
-    function_type = Column(String(255), nullable=True, comment='效果类型') 
-    function_target_traits = Column(String(255), nullable=True, comment='效果对特性的影响')
-    value = Column(Integer, nullable=True, comment='buff值')
+    function_type = Column(String(255), nullable=True, comment='效果类型',primary_key=True,) 
+    function_target_traits = Column(String(255), nullable=True, comment='效果对特性的影响',primary_key=True,)
+    value = Column(Integer, nullable=True, comment='buff值',primary_key=True,)
     count = Column(Integer, nullable=True, comment='buff次数')
-    turn = Column(Integer, nullable=True, comment='buff持续回合数')
+    turn = Column(Integer, nullable=True, comment='buff持续回合数',primary_key=True,)
     rate = Column(Integer, nullable=True, comment='buff命中率')
     userate = Column(Integer, nullable=True, comment='buff生效几率') 
+    
+class CraftEssence(Base):
+    
+    __tablename__ ='craft_essence'
+    ce_id = Column(Integer, primary_key=True, comment='id')
+    ce_name = Column(String(255), nullable=False, comment='名称')
+    buff_name = Column(String(255), nullable=False, comment='buff名称')
+    buff_type = Column(String(255), nullable=False, comment='buff类型')
+    value = Column(Integer, nullable=False, comment='buff值')
+    turn = Column(Integer, nullable=False, comment='buff持续回合数')
+    cost = Column(Integer, nullable=False, comment='消耗')
+    max_atk = Column(Integer, nullable=False, comment='buff对攻击力的影响')
