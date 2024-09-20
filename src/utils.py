@@ -45,3 +45,6 @@ def add_cache(data,url,cache_dir='cache'):
     filename = '_'.join(parsed_url.path.split('/'))
     with open(os.path.join(cache_dir,filename+'.json'),'w') as f:
         json.dump(data,f,indent=4)
+        
+def reverse_mapping(data:dict)->dict:
+    return {v: k for k, v in data.items()}
