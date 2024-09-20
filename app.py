@@ -1,9 +1,24 @@
 import streamlit as st
 import pandas as pd
-
+from src.data_loader import fetch_data,process_servant_buffs_data,process_servant_data
+from src.utils import reverse_mapping
+from components.refund import enemies
 
 st.set_page_config(page_title="FGO 模拟", page_icon='assets/images/favicon_fgo.png')
 st.title('蓝光炮回收计算🏄',)
+
+servants,name_id_mapping = process_servant_data(fetch_data('loopers'))
+id_name_mapping = reverse_mapping(name_id_mapping)
+servant_buffs = process_servant_buffs_data(fetch_data('servant_buffs'))
+test_enemies = [1,1,1]
+hits_dist = [1,2,3,4]
+
+enemy_panels = enemies(test_enemies, hits_dist)
+
+# for panel,ok in enemy_panels:
+#     panel_data = panel 
+#     ok_data = ok
+        
 
 
 

@@ -1,13 +1,15 @@
-from utils import sqlite_operation
+from .utils import sqlite_operation
 from collections import defaultdict
 import json
+from sqlalchemy import text
 
 @sqlite_operation()
 def fetch_data(session,table_name,query=None)->json:
     if query is None:
-        query = f"SELECT * FROM {table_name}"
-    session.execute(query)
-    return json.dumps([dict(row) for row in session.fetchall()])
+        query = text(f"SELECT * FROM {table_name}")
+    result = session.execute(query)
+    rows = result.fetchall()
+    return json.loads(json.dumps([dict(row._mapping) for row in rows]))
 
 
 def process_servant_data(data)->dict:
