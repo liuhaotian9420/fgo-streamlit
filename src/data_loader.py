@@ -39,7 +39,12 @@ def process_servant_buffs_data(data)->dict:
         servant_id = d['servant_id']
         is_single_target = d['function_target_type'] == 'enemy'
         triggers = 3 if ((d['skill_type'] != 'active' and d['skill_type'] != 'passive') and d['turn']==3) else 1
-        buff_info[servant_id][buff_name].append({'turn': turn, 'value': value,'is_single_target': is_single_target,'skill_type': d['skill_type'],'triggers':triggers,'skill_no': d['skill_no']})
+        buff_info[servant_id][buff_name].append({'turn': turn, 'value': value,
+                                                 'is_single_target': is_single_target,
+                                                 'skill_type': d['skill_type'],
+                                                 'triggers':triggers,
+                                                 'skill_no': d['skill_no'],
+                                                 'function_target_type': d['function_target_type'],})
     return buff_info
 
 def process_craft_essence_data(data)->dict:

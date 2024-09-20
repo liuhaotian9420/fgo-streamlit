@@ -9,7 +9,7 @@ from src.utils import reverse_mapping
 from components.refund import enemies,servant_basic,supports,skills,craft_essence
 
 
-def sum_buff(buff_dict,buff_type,ban_one_turn=False,skills_activated=None):
+def sum_buff(buff_dict,buff_type,ban_one_turn=False,skills_activated=None,from_support=False):
     
     buff_lst = buff_dict.get(buff_type, [])  
     
@@ -17,12 +17,17 @@ def sum_buff(buff_dict,buff_type,ban_one_turn=False,skills_activated=None):
         return 0 
     
     divider = 100 if buff_type == 'charge' else 10
-    
+        
     if skills_activated:
         buff_lst = [bf for bf in buff_lst if skills_activated[bf['skill_no']-1 ] and not (bf['skill_type']=='active' and bf['skill_no']==0)]
     
+    if from_support:
+        buff_lst = [bf for bf in buff_lst if bf['function_target_type']!='self']
+    
     if ban_one_turn:
         return sum([bf['value'] for bf in buff_lst if bf['turn']>1])/divider
+    
+    
     
     return sum([bf['value'] for bf in buff_lst])/divider    
 
@@ -130,9 +135,9 @@ support_buffs = defaultdict(float)
 for sup in support_lst:
     if sup in name_id_mapping:
         buff = servant_buffs[name_id_mapping[sup]]
-        support_buffs['npGainUp'] += sum_buff(buff,'NP Gain Up',ban_one_turn=ban_one_turn)
-        support_buffs['commandUp'] += sum_buff(buff,'Arts Up',ban_one_turn=ban_one_turn)
-        support_buffs['charge'] += sum_buff(buff,'charge',skills_activated=skills_activated)
+        support_buffs['npGainUp'] += sum_buff(buff,'NP Gain Up',ban_one_turn=ban_one_turn,from_support=True)
+        support_buffs['commandUp'] += sum_buff(buff,'Arts Up',ban_one_turn=ban_one_turn,from_support=True)
+        support_buffs['charge'] += sum_buff(buff,'charge',skills_activated=skills_activated,from_support=True)
 
 ce_buff = defaultdict(float)
 if ce['ce_name']:
