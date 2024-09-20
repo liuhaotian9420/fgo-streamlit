@@ -1,0 +1,94 @@
+/* local_styles.css */
+.fgo_servant_ranking_v2 table th[data-rank="EX"] {
+    background: linear-gradient(45deg, #aafeb5, #7af2fa);
+}
+.fgo_servant_ranking_v2 table th[data-rank="EX"][data-name="rate"],
+.fgo_servant_ranking_v2 table th[data-rank="EX"][data-name="difficulty"],
+.fgo_servant_ranking_v2 table th[data-rank="EX"][data-name="orbit"]
+{
+    border-top: 10px solid #ccc !important;
+}
+.fgo_servant_ranking_v2 table th[data-rank="SSS"],
+.fgo_servant_ranking_v2 table th[data-rank="7"]{
+    background-color: #ffea9e;
+}
+.fgo_servant_ranking_v2 table th[data-rank="SS"],
+.fgo_servant_ranking_v2 table th[data-rank="7"]{
+    background-color: #ffccf5;
+}
+.fgo_servant_ranking_v2 table th[data-rank="S+"],
+.fgo_servant_ranking_v2 table th[data-rank="6"]{
+    background-color: #eba6f7;
+}
+.fgo_servant_ranking_v2 table th[data-rank="S"],
+.fgo_servant_ranking_v2 table th[data-rank="S-"],
+.fgo_servant_ranking_v2 table th[data-rank="6"]
+{
+    background-color: #f5e1fa;
+}
+.fgo_servant_ranking_v2 table th[data-rank="A+"],
+.fgo_servant_ranking_v2 table th[data-rank="5"]{
+    background-color: #ffa8a8;
+}
+.fgo_servant_ranking_v2 table th[data-rank="A"],
+.fgo_servant_ranking_v2 table th[data-rank="A-"],
+.fgo_servant_ranking_v2 table th[data-rank="5"]{
+    background-color: #f7d2d2;
+}
+.fgo_servant_ranking_v2 table th[data-rank="B+"],
+.fgo_servant_ranking_v2 table th[data-rank="4"]{
+    background-color: #99c7f7;
+}
+.fgo_servant_ranking_v2 table th[data-rank="B"],
+.fgo_servant_ranking_v2 table th[data-rank="B-"],
+.fgo_servant_ranking_v2 table th[data-rank="4"]{
+    background-color: #cae1fa;
+}
+.fgo_servant_ranking_v2 table th[data-rank="C+"],
+.fgo_servant_ranking_v2 table th[data-rank="3"]{
+    background-color: #94ffa9;
+}
+.fgo_servant_ranking_v2 table th[data-rank="C"],
+.fgo_servant_ranking_v2 table th[data-rank="C-"],
+.fgo_servant_ranking_v2 table th[data-rank="3"]{
+    background-color: #d6ffd4;
+}
+.fgo_servant_ranking_v2 table th[data-rank="D"]{
+    background-color: #ffcc96;
+}
+.fgo_servant_ranking_v2 table th[data-rank="E"]{
+    background-color: #32bf34;
+}
+.fgo_servant_ranking_v2 table td.rarity,
+.fgo_servant_ranking_v2 table td.range{
+    width: 20%;
+    text-align: center;
+    line-height: 1;
+    font-weight: bold;
+}
+.fgo_servant_ranking_v2 table td.servant{
+    width: 80%;
+    text-align: left;
+}
+.fgo_servant_ranking_v2 table td{
+    padding: 3px 0;
+}
+.fgo_servant_ranking_v2 table td .a_tag{
+    display: inline-block;
+    max-width: 51px;
+    padding: 3px;
+    box-sizing: border-box;
+    width: 16.6%;
+    position: relative;
+}
+.fgo_servant_ranking_v2 table td .a_tag img{
+    margin: 0;
+}
+.fgo_servant_ranking_v2 table td .a_tag .new_img{
+    position: absolute;
+    top: 3px;
+    left: 3px;
+}
+.no_result {
+    display: none;
+}

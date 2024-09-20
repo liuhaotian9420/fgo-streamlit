@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "fgo-streamlit"
+version = "0.1.0"
+description = "handy tools for fgo analysis"
+authors = ["haotianliu <57208366+liuhaotian9420@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+SQLAlchemy = "^2.0.35"
+tqdm = "^4.66.5"
+PyMySQL = "^1.1.1"
+alembic = "^1.13.2"
+pandas = "^2.2.2"
+streamlit = "^1.38.0"
+requests = "^2.32.3"
+beautifulsoup4 = "^4.12.3"
+cssutils = "^2.11.1"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.3"
+flake8 = "^7.1.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
