@@ -2,6 +2,7 @@
 from sqlalchemy import create_engine, Column, Integer, String, Float, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+import streamlit as st
 
 Base = declarative_base()
 
@@ -76,7 +77,11 @@ class ArtsCraftEssence(Base):
     
     
 # MySQL engine and session
-mysql_engine = create_engine('mysql+pymysql://developer:VhUdQSBX8H3NmTA@118.195.250.136:14306/fgo')
+username = st.secrets.mysql_secrets.username
+password = st.secrets.mysql_secrets.password
+host = st.secrets.mysql_secrets.host
+port = st.secrets.mysql_secrets.port
+database = st.secrets.mysql_secrets.database
+mysql_engine = create_engine(f'mysql+pymysql://{username}:{password}@{host}:{port}/{database}', echo=False)
 MySQLSession = sessionmaker(autocommit=False, autoflush=False, bind=mysql_engine)
-
 

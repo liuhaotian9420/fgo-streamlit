@@ -2,9 +2,9 @@ from mysql import MySQLSession, ArtsLooper,ArtsLooperBuffs,ArtsMetaSupport,ArtsC
 from model import Loopers, ServantBuffs, Supports,CraftEssence,sqlite_session as SqliteSession
 
 VIEW_MAPPING = {
-    # ArtsLooper: Loopers,
-    # ArtsLooperBuffs: ServantBuffs, 
-    # ArtsMetaSupport:ServantBuffs,
+    ArtsLooper: Loopers,
+    ArtsLooperBuffs: ServantBuffs, 
+    ArtsMetaSupport:ServantBuffs,
     ArtsCraftEssence:CraftEssence
     
     # Add more view models as needed

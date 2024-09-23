@@ -9,20 +9,25 @@ from src.utils import reverse_mapping
 from components.refund import enemies,servant_basic,supports,skills,craft_essence
 
 
-def sum_buff(buff_dict,buff_type,ban_one_turn=False,skills_activated=None):
+def sum_buff(buff_dict,buff_type,ban_one_turn=False,skills_activated=None,from_support=False):
     
     buff_lst = buff_dict.get(buff_type, [])  
     
     if not buff_lst:
         return 0 
     
-    divider = 100 if buff_type == 'charge' else 10
-    
+    divider = 100 if (buff_type == 'charge' or buff_type == 'NP Gain Each Turn') else 10
+        
     if skills_activated:
         buff_lst = [bf for bf in buff_lst if skills_activated[bf['skill_no']-1 ] and not (bf['skill_type']=='active' and bf['skill_no']==0)]
     
+    if from_support:
+        buff_lst = [bf for bf in buff_lst if bf['function_target_type']!='self']
+    
     if ban_one_turn:
         return sum([bf['value'] for bf in buff_lst if bf['turn']>1])/divider
+    
+    
     
     return sum([bf['value'] for bf in buff_lst])/divider    
 
@@ -81,6 +86,17 @@ servant_buffs = process_servant_buffs_data(fetch_data('servant_buffs'))
 
 ce_data = fetch_data('craft_essence')
 ce_buffs = process_craft_essence_data(ce_data)
+meta_ce = [9400310, # 元素转换,
+           9403490, # 糖霜
+           9402760, # 黄金之翼
+           9407900, # 伴月
+           9403610, # 笑颜
+           9400900, # 阿兰若
+           9404160, # 双星歌姬
+           9401380, # 毒蛇
+           9402200, # 柑橘
+           9404270 # 空路
+           ]
 name_id_mapping.update({ce['ce_name']:ce['ce_id'] for ce in ce_data})
 
 id_name_mapping = reverse_mapping(name_id_mapping)
@@ -93,9 +109,9 @@ svt_data = servants[svt_name]
 svt_buff = servant_buffs[name_id_mapping[svt_name]]
 
 
-basics = servant_basic(svt_data['rarity'],reset_fn=reset_basics)
+# basics = servant_basic(svt_data['rarity'],reset_fn=reset_basics)
 support_lst = supports([sp['name'] for sp in meta_supports])
-ce = craft_essence([ce['ce_name'] for ce in ce_data])
+ce = craft_essence([ce['ce_name'] for ce in ce_data  if ce['ce_id'] in meta_ce])
 skill_settings = skills()
 ban_one_turn = skill_settings['ban_one_turn']
 hits = svt_data['np_hits'].split(',')    
@@ -130,9 +146,9 @@ support_buffs = defaultdict(float)
 for sup in support_lst:
     if sup in name_id_mapping:
         buff = servant_buffs[name_id_mapping[sup]]
-        support_buffs['npGainUp'] += sum_buff(buff,'NP Gain Up',ban_one_turn=ban_one_turn)
-        support_buffs['commandUp'] += sum_buff(buff,'Arts Up',ban_one_turn=ban_one_turn)
-        support_buffs['charge'] += sum_buff(buff,'charge',skills_activated=skills_activated)
+        support_buffs['npGainUp'] += sum_buff(buff,'NP Gain Up',ban_one_turn=ban_one_turn,from_support=True)
+        support_buffs['commandUp'] += sum_buff(buff,'Arts Up',ban_one_turn=ban_one_turn,from_support=True)
+        support_buffs['charge'] += sum_buff(buff,'charge',skills_activated=skills_activated,from_support=True)
 
 ce_buff = defaultdict(float)
 if ce['ce_name']:
@@ -172,7 +188,7 @@ for idx,mod,overkill in enemy_panels:
     # 计算伤害占比
     percentage+=int(hits[0:np.where(np.array(overkills)==1)[0][0]+1][-1])
     
-refund = discardDigitsBeyond(total_np,2)
+refund = discardDigitsBeyond(total_np + sum_buff(svt_buff,'NP Gain Each Turn',skills_activated=skills_activated),2)
 damage_board,refund_board = st.columns([1,1],vertical_alignment='center')
 dmg = damage_board.metric('有效伤害占比', value=str(percentage)+'%',)
 rfd = refund_board.metric('回收', value=refund,)
