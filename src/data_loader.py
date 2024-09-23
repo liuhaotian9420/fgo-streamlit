@@ -19,14 +19,15 @@ def process_servant_data(data)->dict:
     svt_data = {}
     name_id_mapping = {}
     for d in data:
-        name_id_mapping[d['name']] = d['id']
-        svt_data[d['name']] = d
+        name_id_mapping[d['class_name'].capitalize()+' - '+d['name']] = d['id']
+        svt_data[d['class_name'].capitalize()+' - '+d['name']] = d
     return svt_data, name_id_mapping
 
 def process_servant_buffs_data(data)->dict:
     buff_info = defaultdict(lambda:defaultdict(list))
     for d in data:
         buff_name = d.get('buff_name') if d['buff_name'] is not None else 'charge'
+        
         if d['skill_type'] != 'active' :
             turn = 3
         elif d['skill_type'] == 'active' and (d['function_target_type'] == 'enemyAll' or d['function_target_type'] == 'enemy'):
